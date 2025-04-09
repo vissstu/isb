@@ -12,3 +12,5 @@ RUS_FREQ = {
 
 FILE_ENCODING = 'utf-8'
 INPUT_FILE_PATH = 'cod20.txt'
+KEY_FILE_PATH = 'decryption_key.json'
+DECRYPTED_TEXT_OUTPUT_PATH = 'decrypted_text.txt'
