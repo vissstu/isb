@@ -26,6 +26,15 @@ def  save_encrypted_text(rev_encrypted_text):
         f.write(rev_encrypted_text)
 
 
+def generate_decipher_key():
+    return {char: key for key, char in DECIPHER_DICT_UPPER.items()}
+
+
+def save_decipher_key(decipher_key):
+    with open("decipher_key.json", "w", encoding=FILE_ENCODING) as f:
+        json.dump(decipher_key, f, indent=4, ensure_ascii=False)
+
+
 def main():
     try:
         # Читаем исходный текст из файла
@@ -38,9 +47,8 @@ def main():
         save_encrypted_text(rev_encrypted_text)
 
         # Сохранение ключа расшифровки в отдельный файл
-        decipher_key = {char: key for key, char in DECIPHER_DICT_UPPER.items()}
-        with open("decipher_key.json", "w", encoding=FILE_ENCODING) as f:
-            json.dump(decipher_key, f, indent=4, ensure_ascii=False)
+        decipher_key = generate_decipher_key()
+        save_decipher_key(decipher_key)
 
         print(f"Шифровка текста прошла!")
     except Exception as e:
