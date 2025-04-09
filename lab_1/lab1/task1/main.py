@@ -1,6 +1,12 @@
-import json
 import chardet
+import json
+
 from constants import *
+
+
+def read_file(filename):
+    with open(filename, "r", encoding=FILE_ENCODING) as file:
+        return file.read()
 
 # Функция для шифрования в обратном порядке алфавита
 def reverse_alphabet_cipher(text):
@@ -14,30 +20,26 @@ def reverse_alphabet_cipher(text):
             encrypted_text += char
     return encrypted_text
 
+
+def  save_encrypted_text(rev_encrypted_text):
+    with open(OUTPUT_FILE_PATH, "w", encoding=FILE_ENCODING) as f:
+        f.write(rev_encrypted_text)
+
+
 def main():
     try:
-        # Определяем кодировку файла
-        try:
-            file_encoding = chardet.detect(open(INPUT_FILE_PATH, 'rb').read())['encoding']
-            print(f"Кодировка файла: {file_encoding}")
-        except Exception as e:
-            print(f"Не удалось определить кодировку файла: {e}. Будем использовать {FILE_ENCODING}.")
-            file_encoding = FILE_ENCODING
-
         # Читаем исходный текст из файла
-        with open(INPUT_FILE_PATH, "r", encoding=file_encoding) as f:
-            original_text = f.read().strip()
+        original_text = read_file(INPUT_FILE_PATH)
 
         # Шифрование текста
         rev_encrypted_text = reverse_alphabet_cipher(original_text)
 
         # Сохранение результатов
-        with open(OUTPUT_FILE_PATH, "w", encoding=file_encoding) as f:
-            f.write(rev_encrypted_text)
+        save_encrypted_text(rev_encrypted_text)
 
         # Сохранение ключа расшифровки в отдельный файл
         decipher_key = {char: key for key, char in DECIPHER_DICT_UPPER.items()}
-        with open("decipher_key.json", "w", encoding=file_encoding) as f:
+        with open("decipher_key.json", "w", encoding=FILE_ENCODING) as f:
             json.dump(decipher_key, f, indent=4, ensure_ascii=False)
 
         print(f"Шифровка текста прошла!")
