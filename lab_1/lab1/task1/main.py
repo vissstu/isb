@@ -23,13 +23,17 @@ def reverse_alphabet_cipher(text):
     :return: Зашифрованный текст.
     """
     encrypted_text = ''
+    cipher_dict = {**CIPHER_DICT_UPPER, **CIPHER_DICT_LOWER}
+
     for char in text:
-        if char.isupper():
-            encrypted_text += CIPHER_DICT_UPPER.get(char, char)
-        elif char.islower():
-            encrypted_text += CIPHER_DICT_LOWER.get(char, char)
+        # Используем casefold для приведения строки к нижнему регистру
+        normalized_char = char.casefold()
+
+        if normalized_char in cipher_dict:
+            encrypted_text += cipher_dict[normalized_char]
         else:
             encrypted_text += char
+
     return encrypted_text
 
 
