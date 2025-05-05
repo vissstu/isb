@@ -1,0 +1,9 @@
+Results for C++ sequence:
+Frequency Bitwise Test: 0.47950012
+Identical Consecutive Bits Test: 0.75612572
+Longest TES Sequence Test: 0.83929856
+
+Results for Java sequence:
+Frequency Bitwise Test: 0.85968380
+Identical Consecutive Bits Test: 0.28998416
+Longest TES Sequence Test: 0.88428484

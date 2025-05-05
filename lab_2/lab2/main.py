@@ -6,6 +6,7 @@ from test_nist import frequency_bitwise_test, identical_consecutive_bits, longes
 def load_sequences_from_files():
     """
     Загружает бинарные последовательности из двух файлов.
+
     Возвращает: Две строки, представляющие бинарные последовательности.
     """
     cpp_sequence = ""
@@ -30,6 +31,7 @@ def load_sequences_from_files():
 def save_results_to_file(filename, cpp_sequence, java_sequence):
     """
     Выполняет три теста NIST на предоставленные последовательности и записывает результаты в указанный файл.
+
     Параметры:
         filename (str): Имя файла, в который будут записаны результаты.
         cpp_sequence (str): Бинарная последовательность, созданная на C++.
