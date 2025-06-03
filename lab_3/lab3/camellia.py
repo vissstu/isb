@@ -76,20 +76,21 @@ class CamelliaCipher:
 
         return plaintext
 
+    @staticmethod
+    def generate_camellia_key(key_size):
+        """
+        Генерация случайного ключа для Camellia
+        Параметры:
+        key_size (int): размер ключа в битах (128, 192 или 256)
+        Возвращает:
+        bytes: сгенерированный ключ
+        Исключения:
+        ValueError: при недопустимом размере ключа
+        """
+        if key_size not in const.CAMELLIA_KEY_SIZES:
+            raise ValueError(
+                f"Недопустимый размер ключа ({key_size} бит). "
+                f"Допустимые значения: {const.CAMELLIA_KEY_SIZES}"
+            )
+        return os.urandom(key_size // 8)
 
-def generate_camellia_key(key_size):
-    """
-    Генерация случайного ключа для Camellia
-    Параметры:
-    key_size (int): размер ключа в битах (128, 192 или 256)
-    Возвращает:
-    bytes: сгенерированный ключ
-    Исключения:
-    ValueError: при недопустимом размере ключа
-    """
-    if key_size not in const.CAMELLIA_KEY_SIZES:
-        raise ValueError(
-            f"Недопустимый размер ключа ({key_size} бит). "
-            f"Допустимые значения: {const.CAMELLIA_KEY_SIZES}"
-        )
-    return os.urandom(key_size // 8)
