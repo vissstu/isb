@@ -1,7 +1,8 @@
 import const
-from camellia import CamelliaCipher, generate_camellia_key
-from rsa import encrypt_rsa, decrypt_rsa, save_rsa_keys, load_rsa_private_key, generate_rsa_keys
-from file_work import read_file, write_file
+
+from file_work import FileWork
+from camellia import CamelliaCipher
+from rsa import RSA
 
 
 class HybridCryptoSystem:
@@ -30,8 +31,8 @@ class HybridCryptoSystem:
                 f"Недопустимый размер ключа Camellia ({camellia_key_size} бит). "
                 f"Допустимые значения: {const.CAMELLIA_KEY_SIZES}"
             )
-        self.camellia_key = generate_camellia_key(camellia_key_size)
-        self.rsa_private_key, self.rsa_public_key = generate_rsa_keys(rsa_key_size)
+        self.camellia_key = CamelliaCipher.generate_camellia_key(camellia_key_size)
+        self.rsa_private_key, self.rsa_public_key = RSA.generate_rsa_keys(rsa_key_size)
         return self.camellia_key, self.rsa_public_key, self.rsa_private_key
 
     def save_keys(self, symmetric_key_path=const.PATH_TO_SYM_KEY,
@@ -49,8 +50,8 @@ class HybridCryptoSystem:
             ValueError: Если ключи не были сгенерированы
         """
         encrypted_cam_key = self.encrypt_camellia_key()
-        write_file(symmetric_key_path, encrypted_cam_key)
-        save_rsa_keys(self.rsa_private_key, self.rsa_public_key, private_key_path, public_key_path)
+        FileWork.write_file(symmetric_key_path, encrypted_cam_key)
+        RSA.save_rsa_keys(self.rsa_private_key, self.rsa_public_key, private_key_path, public_key_path)
         return encrypted_cam_key
 
     def encrypt_camellia_key(self):
@@ -63,7 +64,7 @@ class HybridCryptoSystem:
         """
         if not self.camellia_key or not self.rsa_public_key:
             raise ValueError("Ключи не инициализированы")
-        return encrypt_rsa(self.rsa_public_key, self.camellia_key)
+        return RSA.encrypt_rsa(self.rsa_public_key, self.camellia_key)
 
     def decrypt_camellia_key(self, encrypted_key):
         """
@@ -77,7 +78,7 @@ class HybridCryptoSystem:
         """
         if not self.rsa_private_key:
             raise ValueError("Приватный ключ RSA не установлен")
-        self.camellia_key = decrypt_rsa(self.rsa_private_key, encrypted_key)
+        self.camellia_key = RSA.decrypt_rsa(self.rsa_private_key, encrypted_key)
         return self.camellia_key
 
     def load_keys(self, symmetric_key_path=const.PATH_TO_SYM_KEY,
@@ -90,8 +91,8 @@ class HybridCryptoSystem:
         Возвращает:
             bytes: Расшифрованный ключ Camellia или None при ошибке
         """
-        self.rsa_private_key = load_rsa_private_key(private_key_path)
-        encrypted_cam_key = read_file(symmetric_key_path)
+        self.rsa_private_key = RSA.load_rsa_private_key(private_key_path)
+        encrypted_cam_key = FileWork.read_file(symmetric_key_path)
         if encrypted_cam_key:
             return self.decrypt_camellia_key(encrypted_cam_key)
         return None
@@ -111,13 +112,13 @@ class HybridCryptoSystem:
         if not self.camellia_key:
             raise ValueError("Ключ Camellia не установлен")
 
-        plaintext = read_file(input_file)
+        plaintext = FileWork.read_file(input_file)
         if plaintext is None:
             return None
 
         cipher = CamelliaCipher(self.camellia_key)
         ciphertext = cipher.encrypt(plaintext)
-        write_file(output_file, ciphertext)
+        FileWork.write_file(output_file, ciphertext)
         return ciphertext
 
     def decrypt_file(self, input_file=const.PATH_TO_ENCRYPTED_FILE,
@@ -135,11 +136,87 @@ class HybridCryptoSystem:
         if not self.camellia_key:
             raise ValueError("Ключ Camellia не установлен")
 
-        ciphertext = read_file(input_file)
+        ciphertext = FileWork.read_file(input_file)
         if ciphertext is None:
             return None
 
         cipher = CamelliaCipher(self.camellia_key)
         plaintext = cipher.decrypt(ciphertext)
-        write_file(output_file, plaintext)
+        FileWork.write_file(output_file, plaintext)
         return plaintext
+
+
+class CryptoManager:
+    @staticmethod
+    def generate_keys(sym_key_path=const.PATH_TO_SYM_KEY,
+                      pub_key_path=const.PATH_TO_PUBLIC_KEY,
+                      priv_key_path=const.PATH_TO_PRIVATE_KEY,
+                      camellia_key_size=const.DEFAULT_CAMELLIA_KEY_SIZE):
+        """
+        Генерация ключевой пары.
+        Параметры:
+            sym_key_path: Путь к файлу симметричного ключа
+            pub_key_path: Путь к публичному ключу RSA
+            priv_key_path: Путь к приватному ключу RSA
+            camellia_key_size: Размер ключа Camellia в битах
+        """
+        crypto = HybridCryptoSystem()
+        crypto.generate_keys(camellia_key_size)
+        crypto.save_keys(sym_key_path, pub_key_path, priv_key_path)
+        print(f"Ключи сгенерированы (Camellia: {camellia_key_size} бит)")
+
+    @staticmethod
+    def encrypt_file(input_path, output_path=const.PATH_TO_ENCRYPTED_FILE,
+                     priv_key_path=const.PATH_TO_PRIVATE_KEY,
+                     sym_key_path=const.PATH_TO_SYM_KEY):
+        """
+        Шифрование файла.
+        Параметры:
+            input_path: Путь к исходному файлу
+            output_path: Путь для зашифрованного файла
+            priv_key_path: Путь к приватному ключу RSA
+            sym_key_path: Путь к симметричному ключу
+        Возвращает:
+            bool: Статус операции
+        """
+        if not FileWork.file_exists(input_path):
+            print(f"Файл не найден: {input_path}")
+            return False
+
+        crypto = HybridCryptoSystem()
+        if not crypto.load_keys(sym_key_path, priv_key_path):
+            print("Ошибка загрузки ключей")
+            return False
+
+        if crypto.encrypt_file(input_path, output_path):
+            print(f"Файл зашифрован: {input_path} → {output_path}")
+            return True
+        return False
+
+    @staticmethod
+    def decrypt_file(input_path, output_path=const.PATH_TO_DECRYPTED_FILE,
+                     priv_key_path=const.PATH_TO_PRIVATE_KEY,
+                     sym_key_path=const.PATH_TO_SYM_KEY):
+        """
+        Дешифрование файла.
+        Параметры:
+            input_path: Путь к зашифрованному файлу
+            output_path: Путь для расшифрованного файла
+            priv_key_path: Путь к приватному ключу RSA
+            sym_key_path: Путь к симметричному ключу
+        Возвращает:
+            bool: Статус операции
+        """
+        if not FileWork.file_exists(input_path):
+            print(f"Файл не найден: {input_path}")
+            return False
+
+        crypto = HybridCryptoSystem()
+        if not crypto.load_keys(sym_key_path, priv_key_path):
+            print("Ошибка загрузки ключей")
+            return False
+
+        if crypto.decrypt_file(input_path, output_path):
+            print(f"Файл расшифрован: {input_path} → {output_path}")
+            return True
+        return False

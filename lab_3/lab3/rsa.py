@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.backends import default_backend
-from file_work import write_file, read_file
+from file_work import FileWork
 
 
 class RSA:
@@ -53,8 +53,8 @@ class RSA:
         )
 
         # Запись в файлы
-        write_file(priv_path, priv_pem)
-        write_file(pub_path, pub_pem)
+        FileWork.write_file(priv_path, priv_pem)
+        FileWork.write_file(pub_path, pub_pem)
 
         return priv_pem, pub_pem
 
@@ -67,7 +67,7 @@ class RSA:
         Возвращает:
         PublicKey: объект открытого ключа или None при ошибке
         """
-        pub_pem = read_file(pub_path)
+        pub_pem = FileWork.read_file(pub_path)
         if not pub_pem:
             return None
         return serialization.load_pem_public_key(pub_pem, backend=default_backend())
@@ -81,7 +81,7 @@ class RSA:
         Возвращает:
         PrivateKey: объект закрытого ключа или None при ошибке
         """
-        priv_pem = read_file(priv_path)
+        priv_pem = FileWork.read_file(priv_path)
         if not priv_pem:
             return None
         return serialization.load_pem_private_key(priv_pem, password=None, backend=default_backend())
